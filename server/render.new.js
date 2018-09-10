@@ -17,41 +17,44 @@ server.disable('x-powered-by')
 server.use('/static',express.static(path.join(__dirname, '/static')))
 
 server.get('/data',(req,res)=>{
-  res.json({data:'hellow'})
+  // res.json({data:'hellow'})
+  res.send('<h1>--------------------<h1>')
 })
 
-server.get('/*', (req, res) => {
-  request['get']({url:'http://127.0.0.1:8080/data'}, function(error,response,body){
-    if(error){
-      res.json({errors:error,'error2':'error2'})
-    }
-    body = JSON.parse(body)
-    let render = ''
-    if(req.params[0] == 'post'){
-      render = 'post data'
-    }
-    let html = `
-      <!doctype html>
-      <html lang="en">
+const requestAsync = (options) => {
+  return new Promise((resolve, reject) => {
+    request['get'](options, (err, res, body) => {
+      if (err) {
+        reject(err);
+      }
+      resolve(body);
+    });
+  });
+};
 
-      <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
-        <meta name="theme-color" content="#000000">
-        <title>React App</title>
-        <link href="/${config["main.css"]}" rel="stylesheet">
-      </head>
-      
-      <body><noscript>You need to enable JavaScript to run this app.</noscript>
-        ${body.data}
-        <div id="root">${render}</div>
-        <script type="text/javascript" src="/${config["main.js"]}"></script>
-      </body>
-      
-      </html>
-    `
-    res.send(html)
-  })
+server.get('/*', async (req, res) => {
+  let data = await requestAsync({url:'http://127.0.0.1:8080/data'})
+  let html = `
+    <!doctype html>
+    <html lang="en">
+
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1,shrink-to-fit=no">
+      <meta name="theme-color" content="#000000">
+      <title>React App</title>
+      <link href="/${config["main.css"]}" rel="stylesheet">
+    </head>
+    
+    <body><noscript>You need to enable JavaScript to run this app.</noscript>
+      <div>${data}</div>
+      <div id="root">${data}</div>
+      <script type="text/javascript" src="/${config["main.js"]}"></script>
+    </body>
+    
+    </html>
+  `
+  res.send(html)
 })
 server.listen(port, (err) => {
   if (err) throw err
